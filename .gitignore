@@ -1,0 +1,83 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Django stuff:
+*.log
+*.pot
+*.pyc
+*.mo
+*.db
+*.sqlite3
+db.sqlite3
+
+# If using local settings
+local_settings.py
+
+# Media files (user uploaded content)
+media/
+
+# Static files (collected static)
+staticfiles/
+
+# PyCharm
+.idea/
+
+# VS Code
+.vscode/
+
+# Environments
+.env
+.env.*
+
+# macOS
+.DS_Store
+
+# Test coverage reports
+htmlcov/
+.coverage
+.coverage.*
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints
+
+# mypy
+.mypy_cache/
+
+# pytype
+.pytype/
+
+# pyre type checker
+.pyre/
+
+# pytest cache
+.pytest_cache/
+
+# Celery beat schedule file
+celerybeat-schedule
+
+# dotenv
+.env
+.venv
+
+
+# coverage reports
+.coverage
+
+# Pytest cache
+.pytest_cache/
+
+# Caches
+.cache/

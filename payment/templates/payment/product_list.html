@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Products{% endblock %}
+
+{% block content %}
+<div>
+    <h2>Products</h2>
+    <div class="product-grid" id="product-grid">
+        <p>Loading products...</p>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', async function () {
+    let order = null;  // Текущий заказ
+
+    // Функция получения или создания текущего заказа
+    async function getOrCreateOrder() {
+        try {
+            const response = await fetch('/api/orders/current/', {
+                credentials: 'include',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                }
+            });
+            const data = await response.json();
+
+            if (data.detail === "Cart is empty") {
+                // Создаём новый заказ
+                const createResponse = await fetch('/api/orders/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({})
+                });
+
+                if (!createResponse.ok) throw new Error('Failed to create order');
+                return await createResponse.json();
+            }
+
+            return data;
+        } catch (error) {
+            console.error('Error fetching or creating order:', error);
+            throw error;
+        }
+    }
+
+    // Получение списка продуктов с API
+    async function fetchProducts() {
+        try {
+            const response = await fetch('/api/items/');
+            const data = await response.json();
+            renderProducts(data);
+        } catch (error) {
+            document.getElementById('product-grid').innerHTML = '<p>Failed to load products</p>';
+            console.error(error);
+        }
+    }
+
+    // Отрисовка продуктов на странице
+    function renderProducts(products) {
+        if (!products.length) {
+            document.getElementById('product-grid').innerHTML = '<p>No products available</p>';
+            return;
+        }
+
+        const html = products.map(product => `
+            <div class="product-card" data-product-id="${product.id}">
+                <h3>${product.name}</h3>
+                <p class="description">${product.description || ''}</p>
+                <div class="price">${product.price} ${product.currency}</div>
+                <button class="add-to-cart" data-product-id="${product.id}">Add to Cart</button>
+            </div>
+        `).join('');
+        document.getElementById('product-grid').innerHTML = html;
+
+        // Навешиваем обработчики на кнопки добавления в корзину
+        document.querySelectorAll('.add-to-cart').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const productId = btn.dataset.productId;
+                await addItemToOrder(productId);
+            });
+        });
+    }
+
+    // Функция добавления товара в заказ
+    async function addItemToOrder(productId) {
+        try {
+            if (!order) {
+                order = await getOrCreateOrder();
+            }
+
+            const response = await fetch(`/api/orders/${order.id}/add_item/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                credentials: 'include',
+                body: JSON.stringify({
+                    item_id: productId,
+                    quantity: 1
+                }),
+            });
+
+            if (!response.ok) throw new Error('Failed to add item');
+
+            // Обновляем заказ с сервера, чтобы получить актуальные данные корзины
+            order = await fetch('/api/orders/current/', {credentials: 'include'}).then(r => r.json());
+            updateCartCount();
+
+            alert('Added to cart!');
+        } catch (error) {
+            console.error('Error adding item:', error);
+            alert('Failed to add item to cart');
+        }
+    }
+
+    // Обновление счётчика корзины (если есть элемент с классом cart-count)
+    function updateCartCount() {
+        const count = order && order.items ? order.items.length : 0;
+        const cartCountEl = document.querySelector('.cart-count');
+        if (cartCountEl) cartCountEl.textContent = count;
+    }
+
+    // Функция получения cookie (например, CSRF токена)
+    function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+    }
+
+    // Запускаем при загрузке страницы
+    try {
+        order = await getOrCreateOrder();
+        updateCartCount();
+    } catch (e) {
+        console.error('Error initializing order:', e);
+    }
+
+    fetchProducts();
+});
+</script>
+{% endblock %}

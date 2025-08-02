@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Your Cart{% endblock %}
+
+{% block content %}
+<div class="cart-container">
+    <div id="cart-content">
+        <p>Загрузка корзины...</p>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    async function loadCart() {
+        try {
+            const response = await fetch('/api/orders/current/');
+            const data = await response.json();
+            const container = document.getElementById('cart-content');
+
+            if (data.detail === "Cart is empty" || !data.items || data.items.length === 0) {
+                container.innerHTML = '<p class="empty-cart">Your cart is empty</p>';
+                return;
+            }
+
+            let html = '<div class="cart-items">';
+            data.items.forEach(item => {
+                html += `
+                <div class="cart-item" data-item-id="${item.id}">
+                    <div class="item-info">
+                        <span class="item-name">${item.name}</span>
+                        <span class="item-quantity">x${item.quantity}</span>
+                    </div>
+                    <div class="item-price">${item.price} ${item.currency}</div>
+                    <button class="remove-item" data-item-id="${item.id}">Remove</button>
+                </div>`;
+            });
+            html += '</div>';
+
+            html += `
+            <div class="cart-summary">
+                <div class="total">
+                    <span>Total:</span>
+                    <span>${data.total_price} ${data.currency}</span>
+                </div>
+                <button id="checkout-btn" class="checkout-btn">Proceed to Checkout</button>
+            </div>`;
+
+            container.innerHTML = html;
+
+            // Обновляем счётчик корзины, если есть элемент с классом cart-count
+            const cartCountEl = document.querySelector('.cart-count');
+            if (cartCountEl) cartCountEl.textContent = data.items.length;
+
+            // Обработчики кнопок удаления
+            document.querySelectorAll('.remove-item').forEach(btn => {
+                btn.addEventListener('click', async function () {
+                    const itemId = this.dataset.itemId;
+                    try {
+                        const response = await fetch(`/api/orders/${data.id}/remove_item/${itemId}/`, {
+                            method: 'DELETE',
+                            headers: {
+                                'X-CSRFToken': getCookie('csrftoken'),
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            credentials: 'include'
+                        });
+                        if (response.ok) {
+                            this.closest('.cart-item').remove();
+                            location.reload();  // Перезагрузим корзину
+                        } else {
+                            console.error('Failed to remove item');
+                        }
+                    } catch (error) {
+                        console.error('Error removing item:', error);
+                    }
+                });
+            });
+
+            // Обработчик кнопки оплаты
+            document.getElementById('checkout-btn').addEventListener('click', async function () {
+                try {
+                    const response = await fetch(`/api/orders/${data.id}/checkout/`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCookie('csrftoken'),
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify({
+                            success_url: window.location.origin + '/order/success/',
+                            cancel_url: window.location.origin + '/cart/'
+                        }),
+                        credentials: 'include'
+                    });
+
+                    const resData = await response.json();
+                    if (resData.checkout_url) {
+                        window.location.href = resData.checkout_url;
+                    } else {
+                        console.error('No checkout URL');
+                    }
+                } catch (error) {
+                    console.error('Checkout error:', error);
+                }
+            });
+
+        } catch (err) {
+            console.error('Ошибка загрузки корзины:', err);
+            document.getElementById('cart-content').innerHTML = '<p>Ошибка загрузки корзины</p>';
+        }
+    }
+
+    function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+    }
+
+    loadCart();
+});
+</script>
+{% endblock %}

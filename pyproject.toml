@@ -1,0 +1,22 @@
+[project]
+name = "rishat-test-tusk"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Andreev",email = "151520440+DeadGEEK990@users.noreply.github.com"}
+]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "django (>=5.2.4,<6.0.0)",
+    "djangorestframework (>=3.16.0,<4.0.0)",
+    "stripe (>=12.4.0,<13.0.0)",
+    "python-dotenv (>=1.1.1,<2.0.0)",
+    "django-extensions (>=4.1,<5.0)",
+    "black (>=25.1.0,<26.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
