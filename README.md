@@ -13,3 +13,9 @@
 ## Не реализовано
 1. Развертывание на сервере (у меня нет сервера с публичным ip).
 2. Модель скидок и купонов.
+# Интерфейс
+![Снимок.JPG](images%2F%D0%A1%D0%BD%D0%B8%D0%BC%D0%BE%D0%BA.JPG)
+![Снимок1.JPG](images%2F%D0%A1%D0%BD%D0%B8%D0%BC%D0%BE%D0%BA1.JPG)
+![Снимок2.JPG](images%2F%D0%A1%D0%BD%D0%B8%D0%BC%D0%BE%D0%BA2.JPG)
+![Снимок3.JPG](images%2F%D0%A1%D0%BD%D0%B8%D0%BC%D0%BE%D0%BA3.JPG)
+![Снимок4.JPG](images%2F%D0%A1%D0%BD%D0%B8%D0%BC%D0%BE%D0%BA4.JPG)
